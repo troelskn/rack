@@ -24,7 +24,7 @@ module Rack
 
     def method_override(env)
       req = Request.new(env)
-      method = method_override_param(req) ||
+      method = method_override_param(req, env['rack.logger'] || (Rails.logger if defined?(Rails))) ||
         env[HTTP_METHOD_OVERRIDE_HEADER]
       method.to_s.upcase
     end
@@ -35,9 +35,11 @@ module Rack
       ALLOWED_METHODS
     end
 
-    def method_override_param(req)
+    def method_override_param(req, logger=nil)
       req.POST[METHOD_OVERRIDE_PARAM_KEY]
     rescue Utils::InvalidParameterError, Utils::ParameterTypeError
+      logger.warn("Parse error in Rack::MethodOverride.method_override_param") if logger
     end
   end
 end
+
